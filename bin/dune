@@ -1,0 +1,5 @@
+(executable
+ (name swole)
+ (libraries core swole_lib)
+ (preprocess
+  (pps ppx_jane)))
