@@ -10,6 +10,7 @@ build:
 
 .PHONY: deps
 deps: ## Install development dependencies
+	opam pin ocaml_intrinsics https://github.com/jkilburg/ocaml_intrinsics.git
 	opam install -y dune merlin ocamlformat ocaml-lsp-server utop core ppx_jane ppx_log ppx_expect  ppx_bin_prot ppx_csv_conv  ppx_sexp_value ppx_sexp_message ppx_yojson_conv ocamlformat-rpc
 
 .PHONY: create_switch

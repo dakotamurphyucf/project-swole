@@ -1,6 +1,6 @@
 open Core
 open Macro
-open Meal
+
 (* 
 let generate_meals_for_protocol_swole =
   generate_meals
@@ -12,6 +12,10 @@ let generate_meals_for_protocol_swole =
 ;;
 
 *)
+module Ingredient = Ingredient
+module Macro = Macro
+module Meal = Meal
+open Meal
 
 let generate_meals_for_protocol_swole =
   generate_meals
@@ -23,13 +27,38 @@ let generate_meals_for_protocol_swole =
 ;;
 
 let%expect_test _ =
-let egg = {Ingredient.name="egg"; serving=Unit; calories=70; protein=6; fat=5; carbs=0} in
-let cheese = {Ingredient.name="cheese"; serving=Tbl 1; calories=30; protein=2; fat=3; carbs=0}  in
-let steak = {Ingredient.name="steak"; serving=Oz 3.; calories=230; protein=21; fat=16; carbs=0}  in
-let ingredients = [egg; cheese; steak] in
-let meals = generate_meals_for_protocol_swole ingredients ~max_ingr:6 in
- print_s [%sexp (meals : Meal.t list )];
-[%expect {|
+  let egg =
+    { Ingredient.name = "egg"
+    ; serving = Unit
+    ; calories = 70
+    ; protein = 6
+    ; fat = 5
+    ; carbs = 0
+    }
+  in
+  let cheese =
+    { Ingredient.name = "cheese"
+    ; serving = Tbl 1
+    ; calories = 30
+    ; protein = 2
+    ; fat = 3
+    ; carbs = 0
+    }
+  in
+  let steak =
+    { Ingredient.name = "steak"
+    ; serving = Oz 3.
+    ; calories = 230
+    ; protein = 21
+    ; fat = 16
+    ; carbs = 0
+    }
+  in
+  let ingredients = [ egg; cheese; steak ] in
+  let meals = generate_meals_for_protocol_swole ingredients ~max_ingr:6 in
+  print_s [%sexp (meals : Meal.t list)];
+  [%expect
+    {|
   (((macro ((calories 460) (protein 42) (fat 32) (carbs 0)))
     (ingredients
      (((name steak) (serving (Oz 3)) (calories 230) (protein 21) (fat 16)
@@ -265,3 +294,4 @@ let meals = generate_meals_for_protocol_swole ingredients ~max_ingr:6 in
       ((name egg) (serving Unit) (calories 70) (protein 6) (fat 5) (carbs 0))
       ((name steak) (serving (Oz 3)) (calories 230) (protein 21) (fat 16)
        (carbs 0)))))) |}]
+;;

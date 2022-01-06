@@ -1,5 +1,6 @@
 (executable
  (name swole)
- (libraries core swole_lib)
+ (libraries core core_unix.command_unix core_unix.filename_unix swole_lib
+   bin_prot_util)
  (preprocess
   (pps ppx_jane)))

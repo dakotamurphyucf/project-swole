@@ -37,6 +37,8 @@ module Requirements = struct
     ; fat : int requirement
     }
   [@@deriving sexp, bin_io, compare, hash]
+
+  type t = meal_macro_requirements [@@deriving sexp, bin_io, compare, hash]
 end
 
-
+module Io_meal_macro = Bin_prot_util.With_file_methods (Requirements)

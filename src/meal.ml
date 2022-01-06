@@ -1,11 +1,16 @@
 open Core
 open Macro
 
-type t =
-  { macro : Macro.t
-  ; ingredients : Ingredient.t list
-  }
-[@@deriving sexp, bin_io, compare, hash]
+module T = struct
+  type t =
+    { macro : Macro.t
+    ; ingredients : Ingredient.t list
+    }
+  [@@deriving sexp, bin_io, compare, hash]
+end
+
+include T
+module Io = Bin_prot_util.With_file_methods (T)
 
 module Ingredient_tbl = struct
   module T = struct
@@ -17,10 +22,11 @@ module Ingredient_tbl = struct
 end
 
 let add_ingr ingr ~meal =
+  let open Ingredient.T in
   let p_macro = meal.macro in
   let macro =
     { fat = p_macro.fat + ingr.fat
-    ; calories = p_macro.calories + ingr.Ingredient.calories
+    ; calories = p_macro.calories + ingr.calories
     ; protein = p_macro.protein + ingr.protein
     ; carbs = p_macro.carbs + ingr.carbs
     }
@@ -49,7 +55,7 @@ let empty_meal =
 ;;
 
 let generate_meals mmr ingredients ~max_ingr =
-  let rec aux ?(index = 0) cookbook meals  =
+  let rec aux ?(index = 0) cookbook meals =
     match index = max_ingr with
     | true -> cookbook
     | false ->
@@ -63,13 +69,8 @@ let generate_meals mmr ingredients ~max_ingr =
         @@ List.map meals ~f:(fun meal ->
                List.map ingredients ~f:(fun ingr -> add_ingr ingr ~meal))
       in
-      let valid_meals =
-        List.filter new_meal_candidates ~f:(meets_mmr ~mmr )
-      in
-      aux
-        ~index:(index + 1)
-        (cookbook @ valid_meals)
-        new_meal_candidates
+      let valid_meals = List.filter new_meal_candidates ~f:(meets_mmr ~mmr) in
+      aux ~index:(index + 1) (cookbook @ valid_meals) new_meal_candidates
   in
   let meals = List.map ingredients ~f:(add_ingr ~meal:empty_meal) in
   aux [] meals
