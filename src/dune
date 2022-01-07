@@ -1,6 +1,6 @@
 (library
  (inline_tests)
  (name swole_lib)
- (libraries core bin_prot_util)
+ (libraries core bin_prot_util sexp_pretty)
  (preprocess
-  (pps ppx_jane ppx_expect)))
+  (pps ppx_jane ppx_expect ppx_csv_conv)))

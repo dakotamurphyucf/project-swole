@@ -15,6 +15,9 @@ let generate_meals_for_protocol_swole =
 module Ingredient = Ingredient
 module Macro = Macro
 module Meal = Meal
+module Util = Util
+module Activity = Activity
+
 open Meal
 
 let generate_meals_for_protocol_swole =

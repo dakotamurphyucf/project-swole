@@ -1,6 +1,6 @@
 (executable
  (name swole)
  (libraries core core_unix.command_unix core_unix.filename_unix swole_lib
-   bin_prot_util ocolor sexp_pretty)
+   bin_prot_util ocolor sexp_pretty )
  (preprocess
-  (pps ppx_jane)))
+  (pps ppx_jane ppx_csv_conv)))

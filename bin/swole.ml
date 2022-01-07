@@ -35,27 +35,6 @@ let list_all_colors () : unit =
     Ocolor_x11.available_colors
 ;;
 
-let pp_sexp sexp =
-  let config = Sexp_pretty.Config.default in
-  let config =
-    Sexp_pretty.Config.update
-      config
-      ~interpret_atom_as_sexp:true
-      ~drop_comments:false
-      ~color:true
-      ?new_line_separator:(Some true)
-  in
-  let fmt = Format.formatter_of_out_channel Caml.stdout in
-  let sexp = Sexp_pretty.sexp_to_sexp_or_comment sexp in
-  Sexp_pretty.Sexp_with_layout.pp_formatter
-    { config with
-      atom_coloring = Color_all
-    ; color_scheme = [| Blue; Green; Yellow; Red; White |]
-    }
-    fmt
-    sexp
-;;
-
 let rec prompt_for_param : type a. ?default:a -> string -> (string -> a) -> a =
  fun ?default name of_t ->
   let flush () = Ocolor_format.pp_print_flush Ocolor_format.std_formatter () in
@@ -144,7 +123,7 @@ module Add_ingredient_command = struct
             print_s [%sexp (ingr : Ingredient.t)])
           else (
             Ingredient.Io.File.write_all (directory ^ "/ingredients.binio") [ ingr ];
-            pp_sexp [%sexp (ingr :: ingrs : Ingredient.t list)]))
+            Util.pp_sexp [%sexp (ingr :: ingrs : Ingredient.t list)]))
   ;;
 end
 
@@ -162,7 +141,24 @@ module List_ingredient_command = struct
         in
         fun () ->
           let ingrs = Ingredient.Io.File.read_all (directory ^ "/ingredients.binio") in
-          pp_sexp [%sexp (ingrs : Ingredient.t list)])
+          Util.pp_sexp [%sexp (ingrs : Ingredient.t list)])
+  ;;
+end
+
+module List_activities_command = struct
+  let default_dir = "/home/dakota/project-swole"
+  let command =
+    Command.basic
+      ~summary:"list activities"
+      Command.Let_syntax.(
+        let%map_open directory =
+          flag
+            ~aliases:[ "-dir" ]
+            "-d"
+            (optional_with_default default_dir Filename_unix.arg_type)
+            ~doc:"directory Directory where ingrediant list is located"
+        in
+        fun () -> Activity.show_csv (directory ^ "/activity.csv"))
   ;;
 end
 
@@ -294,7 +290,7 @@ module Generate_meal_command = struct
           let mmr = { calories; protein; carbs; fat } in
           let meals = Meal.generate_meals mmr ingrs ~max_ingr:max in
           Sexp.save_hum (outdir ^ "/meals.sexp") [%sexp (meals : Meal.t list)];
-          pp_sexp [%sexp (meals : Meal.t list)])
+          Util.pp_sexp [%sexp (meals : Meal.t list)])
   ;;
 end
 
@@ -305,6 +301,7 @@ let command =
     ; "export", Export_ingredients_command.command
     ]
   in
+  let activity_commands = [ "list", List_activities_command.command ] in
   let generate_commands =
     [ "protocol-swole", Generate_protocol_swole_command.command
     ; "generate", Generate_meal_command.command
@@ -313,6 +310,7 @@ let command =
   let commands =
     [ "ingredients", Command.group ~summary:"ingredients" ing_commands
     ; "meals", Command.group ~summary:"generate meals" generate_commands
+    ; "activity", Command.group ~summary:"activity" activity_commands
     ]
   in
   Command.group ~summary:"swole" commands
