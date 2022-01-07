@@ -1,7 +1,7 @@
 open Core
 open Swole_lib
 
-let default_dir = "/home/dakota/project-swole"
+let default_dir = "/home/dakota/project-swole/data"
 
 let serving_unit =
   Command.Arg_type.create (fun input ->

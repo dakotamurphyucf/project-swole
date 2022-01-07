@@ -27,3 +27,4 @@ dist/
 
 *.binio
 *.sexp
+data/
