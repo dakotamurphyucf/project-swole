@@ -14,6 +14,75 @@ let int_requiremnt =
       @@ Sexp.of_string input)
 ;;
 
+let list_all_colors () : unit =
+  Ocolor_config.set_color_capability Color24;
+  List.iter
+    ~f:(fun (name, (r24, g24, b24)) ->
+      Ocolor_format.printf
+        "%a%s%s 0x%02X%02X%02X   %03d, %03d, %03d%a\n"
+        Ocolor_format.pp_open_style
+        (Fg (C24 { r24; g24; b24 }))
+        name
+        (String.make (max 0 (30 - String.length name)) ' ')
+        r24
+        g24
+        b24
+        r24
+        g24
+        b24
+        Ocolor_format.pp_close_style
+        ())
+    Ocolor_x11.available_colors
+;;
+
+let pp_sexp sexp =
+  let config = Sexp_pretty.Config.default in
+  let config =
+    Sexp_pretty.Config.update
+      config
+      ~interpret_atom_as_sexp:true
+      ~drop_comments:false
+      ~color:true
+      ?new_line_separator:(Some true)
+  in
+  let fmt = Format.formatter_of_out_channel Caml.stdout in
+  let sexp = Sexp_pretty.sexp_to_sexp_or_comment sexp in
+  Sexp_pretty.Sexp_with_layout.pp_formatter
+    { config with
+      atom_coloring = Color_all
+    ; color_scheme = [| Blue; Green; Yellow; Red; White |]
+    }
+    fmt
+    sexp
+;;
+
+let rec prompt_for_param : type a. ?default:a -> string -> (string -> a) -> a =
+ fun ?default name of_t ->
+  let flush () = Ocolor_format.pp_print_flush Ocolor_format.std_formatter () in
+  Ocolor_format.printf
+    "@{<yellow1;bold;>enter @{<blue;bold>%s@}@{<red;bold> -> @}@}%!"
+    name;
+  flush ();
+  match In_channel.input_line In_channel.stdin with
+  | None ->
+    (match default with
+    | None ->
+      Ocolor_format.printf "@{<red>please provide value @}";
+      flush ();
+      prompt_for_param name of_t
+    | Some x -> x)
+  | Some line ->
+    (match String.length line with
+    | 0 ->
+      (match default with
+      | None ->
+        Ocolor_format.printf "@{<red>please provide value @}";
+        flush ();
+        prompt_for_param name of_t
+      | Some x -> x)
+    | _ -> of_t line)
+;;
+
 module Add_ingredient_command = struct
   let command =
     Command.basic
@@ -26,16 +95,45 @@ module Add_ingredient_command = struct
             (optional_with_default default_dir Filename_unix.arg_type)
             ~doc:"directory Directory where scan data is located"
         and serving =
-          flag ~aliases:[ "-serving" ] "-s" (required serving_unit) ~doc:"serving"
-        and name = flag ~aliases:[ "-name" ] "-n" (required string) ~doc:"name"
-        and calories = flag ~aliases:[ "-cals" ] "-c" (required int) ~doc:"calories"
-        and protein =
-          flag ~aliases:[ "-protein" ] "-p" (optional_with_default 0 int) ~doc:"protein"
-        and fat = flag ~aliases:[ "-fat" ] "-f" (optional_with_default 0 int) ~doc:"fat"
-        and carbs =
-          flag ~aliases:[ "-carbs" ] "-cb" (optional_with_default 0 int) ~doc:"carbs"
-        in
+          flag ~aliases:[ "-serving" ] "-s" (optional serving_unit) ~doc:"serving"
+        and name = flag ~aliases:[ "-name" ] "-n" (optional string) ~doc:"name"
+        and calories = flag ~aliases:[ "-cals" ] "-c" (optional int) ~doc:"calories"
+        and protein = flag ~aliases:[ "-protein" ] "-p" (optional int) ~doc:"protein"
+        and fat = flag ~aliases:[ "-fat" ] "-f" (optional int) ~doc:"fat"
+        and carbs = flag ~aliases:[ "-carbs" ] "-cb" (optional int) ~doc:"carbs" in
         fun () ->
+          let serving =
+            match serving with
+            | Some x -> x
+            | None ->
+              prompt_for_param "serving" (fun input ->
+                  Swole_lib.Ingredient.serving_unit_of_sexp @@ Sexp.of_string input)
+          in
+          let name =
+            match name with
+            | Some x -> x
+            | None -> prompt_for_param "name" (fun s -> s)
+          in
+          let calories =
+            match calories with
+            | Some x -> x
+            | None -> prompt_for_param "calories" Int.of_string
+          in
+          let protein =
+            match protein with
+            | Some x -> x
+            | None -> prompt_for_param ~default:0 "protein defaults to 0" Int.of_string
+          in
+          let fat =
+            match fat with
+            | Some x -> x
+            | None -> prompt_for_param ~default:0 "fat defaults to 0" Int.of_string
+          in
+          let carbs =
+            match carbs with
+            | Some x -> x
+            | None -> prompt_for_param ~default:0 "carbs defaults to 0" Int.of_string
+          in
           let ingr =
             { Swole_lib.Ingredient.name; serving; calories; protein; fat; carbs }
           in
@@ -46,7 +144,7 @@ module Add_ingredient_command = struct
             print_s [%sexp (ingr : Ingredient.t)])
           else (
             Ingredient.Io.File.write_all (directory ^ "/ingredients.binio") [ ingr ];
-            print_s [%sexp (ingr :: ingrs : Ingredient.t list)]))
+            pp_sexp [%sexp (ingr :: ingrs : Ingredient.t list)]))
   ;;
 end
 
@@ -64,7 +162,7 @@ module List_ingredient_command = struct
         in
         fun () ->
           let ingrs = Ingredient.Io.File.read_all (directory ^ "/ingredients.binio") in
-          print_s [%sexp (ingrs : Ingredient.t list)])
+          pp_sexp [%sexp (ingrs : Ingredient.t list)])
   ;;
 end
 
@@ -150,38 +248,53 @@ module Generate_meal_command = struct
             "-o"
             (optional_with_default default_dir Filename_unix.arg_type)
             ~doc:"directory Directory where output meals"
-        and max =
-          flag
-            ~aliases:[ "-max" ]
-            "-m"
-            (optional_with_default 6 int)
-            ~doc:"max ingredients"
+        and max = flag ~aliases:[ "-max" ] "-m" (optional int) ~doc:"max ingredients"
         and calories =
-          flag ~aliases:[ "-cals" ] "-c" (required int_requiremnt) ~doc:"calories"
+          flag ~aliases:[ "-cals" ] "-c" (optional int_requiremnt) ~doc:"calories"
         and protein =
-          flag
-            ~aliases:[ "-protein" ]
-            "-p"
-            (optional_with_default (At_least 0) int_requiremnt)
-            ~doc:"protein"
-        and fat =
-          flag
-            ~aliases:[ "-fat" ]
-            "-f"
-            (optional_with_default (At_least 0) int_requiremnt)
-            ~doc:"fat"
+          flag ~aliases:[ "-protein" ] "-p" (optional int_requiremnt) ~doc:"protein"
+        and fat = flag ~aliases:[ "-fat" ] "-f" (optional int_requiremnt) ~doc:"fat"
         and carbs =
-          flag
-            ~aliases:[ "-carbs" ]
-            "-cb"
-            (optional_with_default (At_least 0) int_requiremnt)
-            ~doc:"carbs"
+          flag ~aliases:[ "-carbs" ] "-cb" (optional int_requiremnt) ~doc:"carbs"
         in
         fun () ->
+          let f input =
+            Swole_lib.Macro.Requirements.requirement_of_sexp Int.t_of_sexp
+            @@ Sexp.of_string input
+          in
+          let calories =
+            match calories with
+            | Some x -> x
+            | None -> prompt_for_param "calories" f
+          in
+          let protein =
+            match protein with
+            | Some x -> x
+            | None ->
+              prompt_for_param ~default:(At_least 0) "protein defaults to (At_least 0)" f
+          in
+          let fat =
+            match fat with
+            | Some x -> x
+            | None ->
+              prompt_for_param ~default:(At_least 0) "fat defaults to (At_least 0)" f
+          in
+          let carbs =
+            match carbs with
+            | Some x -> x
+            | None ->
+              prompt_for_param ~default:(At_least 0) "carbs defaults to (At_least 0)" f
+          in
+          let max =
+            match max with
+            | Some x -> x
+            | None -> prompt_for_param ~default:5 "max defaults to 5" Int.of_string
+          in
           let ingrs = Ingredient.Io.File.read_all (directory ^ "/ingredients.binio") in
           let mmr = { calories; protein; carbs; fat } in
           let meals = Meal.generate_meals mmr ingrs ~max_ingr:max in
-          Sexp.save_hum (outdir ^ "/meals.sexp") [%sexp (meals : Meal.t list)])
+          Sexp.save_hum (outdir ^ "/meals.sexp") [%sexp (meals : Meal.t list)];
+          pp_sexp [%sexp (meals : Meal.t list)])
   ;;
 end
 
