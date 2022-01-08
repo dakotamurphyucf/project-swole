@@ -2,13 +2,13 @@ use ocaml_interop::{
     ocaml_export, ocaml_unpack_polymorphic_variant, ocaml_unpack_variant, OCaml, OCamlBytes,
     OCamlFloat, OCamlInt, OCamlInt32, OCamlInt64, OCamlList, OCamlRef, ToOCaml,
 };
+use std::path::Path;
 use std::{thread, time};
 use tantivy::collector::TopDocs;
+use tantivy::directory::MmapDirectory;
 use tantivy::query::QueryParser;
 use tantivy::schema::*;
 use tantivy::{doc, Index, ReloadPolicy};
-use std::path::Path;
-use tantivy::directory::MmapDirectory;
 
 enum Movement {
     Step { count: i32 },
@@ -21,8 +21,8 @@ enum PolymorphicMovement {
     RotateLeft,
     RotateRight,
 }
-fn tantiviy(query: &str) -> tantivy::Result<Vec<String>> { 
-        // Let's create a temporary directory for the
+fn tantiviy(query: &str) -> tantivy::Result<Vec<String>> {
+    // Let's create a temporary directory for the
     // sake of this example
     let index_path = Path::new("/home/dakota/project-swole/tantivity/");
 
@@ -70,9 +70,7 @@ fn tantiviy(query: &str) -> tantivy::Result<Vec<String>> {
     // with our schema in the directory.
     // let index = Index::create_in_dir(&index_path, schema.clone())?;
     let dir = MmapDirectory::open(&index_path)?;
-     let index =  Index::open_or_create(dir, schema.clone())?;
-     
-     
+    let index = Index::open_or_create(dir, schema.clone())?;
     // To insert a document we will need an index writer.
     // There must be only one writer at a time.
     // This single `IndexWriter` is already
@@ -222,15 +220,15 @@ fn tantiviy(query: &str) -> tantivy::Result<Vec<String>> {
     // Since the body field was not configured as stored,
     // the document returned will only contain
     // a title.
-     let mut vec: Vec<String> = Vec::new();
+    let mut vec: Vec<String> = Vec::new();
     for (_score, doc_address) in top_docs {
         let retrieved_doc = searcher.doc(doc_address)?;
         vec.push(schema.to_json(&retrieved_doc));
     }
 
     Ok(vec)
-
 }
+
 ocaml_export! {
     fn rust_twice(cr, num: OCamlRef<OCamlInt>) -> OCaml<OCamlInt> {
         let num: i64 = num.to_rust(cr);
