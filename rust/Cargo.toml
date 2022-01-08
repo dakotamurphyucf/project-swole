@@ -10,3 +10,4 @@ crate-type = ["staticlib", "cdylib"]
 [dependencies]
 ocaml-interop = "0.8.7"
 tantivy = "0.16.1"
+ocaml = "0.22.2"

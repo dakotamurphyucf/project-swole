@@ -1,2 +1,4 @@
 1. functionality to generate macro requiremts based on inouts like height weight age goals (weigth loss/ bulk ect)
 2. functionality to persist user macro requirements and update based on daily logs of weight and meals consumed
+3. index all of the acticity rows and create interfact to search via category and activity discriptiuon
+4. exersise generator based on calories burned and time of exersise and activity type 

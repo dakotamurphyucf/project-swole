@@ -17,6 +17,7 @@ module Macro = Macro
 module Meal = Meal
 module Util = Util
 module Activity = Activity
+module Search = Search
 
 open Meal
 
