@@ -1,6 +1,6 @@
 use ocaml_interop::{
     ocaml_export, ocaml_unpack_polymorphic_variant, ocaml_unpack_variant, OCaml, OCamlBytes,
-    OCamlFloat, OCamlInt, OCamlInt32, OCamlInt64, OCamlList, OCamlRef, ToOCaml,
+    OCamlFloat, OCamlFn1, OCamlInt, OCamlInt32, OCamlInt64, OCamlList, OCamlRef, ToOCaml,
 };
 use std::path::Path;
 use std::{thread, time};
@@ -230,6 +230,10 @@ fn tantiviy(query: &str) -> tantivy::Result<Vec<String>> {
 }
 
 ocaml_export! {
+    fn cb_from_ocaml(cr, num: OCamlRef<OCamlInt>, f: OCamlFn1<OCamlInt, OCamlInt>) -> OCaml<OCamlInt> {
+        f(cr, num)
+
+    }
     fn rust_twice(cr, num: OCamlRef<OCamlInt>) -> OCaml<OCamlInt> {
         let num: i64 = num.to_rust(cr);
         unsafe { OCaml::of_i64_unchecked(num * 2) }
