@@ -1,0 +1,17 @@
+(rule
+ (targets libswole_search.a dllswole_search.so)
+ (deps Cargo.toml dune (source_tree ./src))
+ (action
+  (no-infer
+   (progn
+    (run cargo build)
+    (run sh -c
+      "cp target/debug/libswole_search.so ./dllswole_search.so 2> /dev/null || \
+       cp target/debug/libswole_search.dylib ./dllswole_search.so")
+    (run cp target/debug/libswole_search.a ./libswole_search.a)
+   ))))
+
+(library
+ (name swole_search)
+ (c_library_flags -lpthread -lc -lm)
+ (foreign_archives swole_search))

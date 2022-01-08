@@ -28,3 +28,6 @@ dist/
 *.binio
 *.sexp
 data/
+tantivity/
+rust/Cargo.lock
+rust/target/
