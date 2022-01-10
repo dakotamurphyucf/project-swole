@@ -21,7 +21,7 @@ pub unsafe fn create_query_parser(
 ) -> Result<ocaml::Pointer<'static, QueryParserWrap>, ocaml::Error> {
     let tindex = t.as_ref();
     let index = &tindex.index;
-    let schema =index.schema();
+    let schema = index.schema();
     let mut vec: Vec<tantivy::schema::Field> = Vec::new();
     for i in 0..default_fields.len() {
         let field_str = default_fields.get_unchecked(i);
@@ -33,11 +33,11 @@ pub unsafe fn create_query_parser(
 }
 
 #[ocaml::func]
-pub  fn query(
+pub fn query(
     t: ocaml::Pointer<'static, ocaml_index::TantivyIndex>,
     qt: ocaml::Pointer<'static, QueryParserWrap>,
     query: String,
-    limit: usize
+    limit: usize,
 ) -> Result<ocaml::List<'static, String>, ocaml::Error> {
     let tindex = t.as_ref();
     let index = &tindex.index;
@@ -48,7 +48,7 @@ pub  fn query(
     let searcher = reader.searcher();
     let query = query_parser.parse_query(&query)?;
     let top_docs = searcher.search(&query, &TopDocs::with_limit(limit))?;
-     let mut list = ocaml::List::empty();
+    let mut list = ocaml::List::empty();
     for (_score, doc_address) in top_docs {
         let retrieved_doc = searcher.doc(doc_address)?;
         unsafe { list = list.add(gc, schema.to_json(&retrieved_doc)) }

@@ -1,8 +1,8 @@
 use crate::ocaml_schema;
 use std::path::Path;
 use tantivy::directory::MmapDirectory;
-use tantivy::{Index, ReloadPolicy};
 use tantivy::schema::Schema;
+use tantivy::{Index, ReloadPolicy};
 
 pub struct TantivyIndex {
     pub schema: Schema,
@@ -19,7 +19,10 @@ unsafe extern "C" fn tantivy_index_finalizer(v: ocaml::Raw) {
 ocaml::custom_finalize!(TantivyIndex, tantivy_index_finalizer);
 
 #[ocaml::func]
-pub fn tantivy_index(t: ocaml::Pointer<ocaml_schema::SchemaWrap>, path: String) -> ocaml::Pointer<'static, TantivyIndex> {
+pub fn tantivy_index(
+    t: ocaml::Pointer<ocaml_schema::SchemaWrap>,
+    path: String,
+) -> ocaml::Pointer<'static, TantivyIndex> {
     let tindex = t.as_ref();
     let schema = &tindex.schema;
     let index_path = Path::new(&path);

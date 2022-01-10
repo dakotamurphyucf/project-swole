@@ -11,13 +11,13 @@ enum TextFieldOptions {
 #[derive(ocaml::IntoValue, ocaml::FromValue)]
 enum U64FieldOptions {
     Indexed,
-    IndexedAndStored
+    IndexedAndStored,
 }
 
 #[derive(ocaml::IntoValue, ocaml::FromValue)]
 enum F64FieldOptions {
     Indexed,
-    IndexedAndStored
+    IndexedAndStored,
 }
 
 #[derive(ocaml::IntoValue, ocaml::FromValue)]
@@ -30,7 +30,7 @@ enum AddField {
     Text(TextFieldOptions),
     U64(U64FieldOptions),
     Facet(FacetFieldOptions),
-    F64(F64FieldOptions)
+    F64(F64FieldOptions),
 }
 
 // https://github.com/zshipko/ocaml-rs/blob/master/test/src/custom.rs
@@ -44,8 +44,6 @@ unsafe extern "C" fn tantivy_schema_finalizer(v: ocaml::Raw) {
 }
 
 ocaml::custom_finalize!(SchemaWrap, tantivy_schema_finalizer);
-
-
 
 #[ocaml::func]
 pub unsafe fn new_tantivy_schema(
@@ -67,8 +65,8 @@ pub unsafe fn new_tantivy_schema(
             },
             (name, AddField::U64(opt)) => match opt {
                 U64FieldOptions::Indexed => {
-                    schema_builder.add_u64_field(&name.as_str(), INDEXED );
-                },
+                    schema_builder.add_u64_field(&name.as_str(), INDEXED);
+                }
                 U64FieldOptions::IndexedAndStored => {
                     schema_builder.add_u64_field(&name.as_str(), INDEXED | STORED);
                 }
@@ -76,8 +74,8 @@ pub unsafe fn new_tantivy_schema(
             (name, AddField::F64(opt)) => match opt {
                 F64FieldOptions::Indexed => {
                     schema_builder.add_f64_field(&name.as_str(), INDEXED);
-                },
-                 F64FieldOptions::IndexedAndStored => {
+                }
+                F64FieldOptions::IndexedAndStored => {
                     schema_builder.add_f64_field(&name.as_str(), INDEXED | STORED);
                 }
             },
@@ -91,13 +89,3 @@ pub unsafe fn new_tantivy_schema(
     let schema: Schema = schema_builder.build();
     ocaml::Pointer::alloc_custom(SchemaWrap { schema })
 }
-// ocaml_export! {
-//     fn new_tantivy_schema(cr) ->  OCaml<DynBox<Schema>> {
-//         let mut schema_builder = Schema::builder();
-//         schema_builder.add_text_field("title", TEXT | STORED);
-//         schema_builder.add_text_field("body", TEXT);
-//         let schema:Schema = schema_builder.build();
-//         OCaml::box_value(cr,  schema)
-//     }
-
-// }

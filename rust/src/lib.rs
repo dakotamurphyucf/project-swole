@@ -1,15 +1,15 @@
 use ocaml_interop::{
     ocaml_export, ocaml_unpack_polymorphic_variant, ocaml_unpack_variant, OCaml, OCamlBytes,
-    OCamlFloat, OCamlInt, OCamlInt32, OCamlInt64, OCamlList, OCamlRef, ToOCaml
+    OCamlFloat, OCamlInt, OCamlInt32, OCamlInt64, OCamlList, OCamlRef, ToOCaml,
 };
 // use std::borrow::Borrow;
 
 use std::{thread, time};
 
-pub mod ocaml_schema;
-pub mod ocaml_index;
 pub mod ocaml_doc;
+pub mod ocaml_index;
 pub mod ocaml_query;
+pub mod ocaml_schema;
 
 enum Movement {
     Step { count: i32 },
@@ -24,10 +24,6 @@ enum PolymorphicMovement {
 }
 
 ocaml_export! {
-    // fn rust_twice(cr, num:OCaml<DynBox<i64>>) -> OCaml<DynBox<i64>> {
-    //     let s:i64 = *num.borrow();
-    //     OCaml::box_value(cr,  s * 2)
-    // }
 
     fn rust_twice_boxed_i64(cr, num: OCamlRef<OCamlInt64>) -> OCaml<OCamlInt64> {
         let num: i64 = num.to_rust(cr);
