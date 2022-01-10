@@ -11,6 +11,13 @@ enum TextFieldOptions {
 #[derive(ocaml::IntoValue, ocaml::FromValue)]
 enum U64FieldOptions {
     Indexed,
+    IndexedAndStored
+}
+
+#[derive(ocaml::IntoValue, ocaml::FromValue)]
+enum F64FieldOptions {
+    Indexed,
+    IndexedAndStored
 }
 
 #[derive(ocaml::IntoValue, ocaml::FromValue)]
@@ -23,6 +30,7 @@ enum AddField {
     Text(TextFieldOptions),
     U64(U64FieldOptions),
     Facet(FacetFieldOptions),
+    F64(F64FieldOptions)
 }
 
 // https://github.com/zshipko/ocaml-rs/blob/master/test/src/custom.rs
@@ -59,7 +67,18 @@ pub unsafe fn new_tantivy_schema(
             },
             (name, AddField::U64(opt)) => match opt {
                 U64FieldOptions::Indexed => {
-                    schema_builder.add_u64_field(&name.as_str(), INDEXED);
+                    schema_builder.add_u64_field(&name.as_str(), INDEXED );
+                },
+                U64FieldOptions::IndexedAndStored => {
+                    schema_builder.add_u64_field(&name.as_str(), INDEXED | STORED);
+                }
+            },
+            (name, AddField::F64(opt)) => match opt {
+                F64FieldOptions::Indexed => {
+                    schema_builder.add_f64_field(&name.as_str(), INDEXED);
+                },
+                 F64FieldOptions::IndexedAndStored => {
+                    schema_builder.add_f64_field(&name.as_str(), INDEXED | STORED);
                 }
             },
             (name, AddField::Facet(opt)) => match opt {

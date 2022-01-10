@@ -29,5 +29,6 @@ dist/
 *.sexp
 data/
 tantivity/
+activity/
 rust/Cargo.lock
 rust/target/

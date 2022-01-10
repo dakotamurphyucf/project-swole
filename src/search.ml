@@ -54,13 +54,15 @@ type text_field_option =
   | TextAndStored
   | String
 
-type u64_field_option = Indexed
+type u64_field_option = Indexed | IndexedAndStored
+type f64_field_option = Indexed | IndexedAndStored
 type facet_field_option = Default
 
 type field =
   | Text of text_field_option
   | U64 of u64_field_option
   | Facet of facet_field_option
+  | F64 of f64_field_option
 
 type tantivy_schema
 
