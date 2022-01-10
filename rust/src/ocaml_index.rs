@@ -35,6 +35,4 @@ pub fn tantivy_index(t: ocaml::Pointer<ocaml_schema::SchemaWrap>, path: String) 
         reader,
         index,
     })
-    // ocaml::Pointer::alloc_final(gc, MyType, finalizer, None) can also be used
-    // if you don't intend to implement `Custom`
 }

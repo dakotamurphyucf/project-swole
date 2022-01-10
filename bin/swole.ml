@@ -162,8 +162,19 @@ module List_activities_command = struct
         in
         fun () ->
           Activity.show_csv (directory ^ "/activity.csv");
-          let index = Search.new_tantivy_index () in
-          let docs = Search.query_tantivy  index " river the golden foothill " in
+          (* let activity_jsons = List.map (Activity.load  (directory ^ "/activity.csv")) ~f: (fun acc -> 
+               `Assoc
+                [ "heading", `String acc.heading
+                ; "activities", `String acc.activities
+                ] |> Yojson.to_string
+            ) |> List.to_array in *)
+          let open Search in
+          let schema = Search.new_tantivy_schema [|"heading", Text TextAndStored; "activities", Text TextAndStored; |] in
+          let index = Search.tantivy_index schema  (directory ^ "/activity") in
+          (* let count = Search.add_docs_json index activity_jsons in *)
+          (* print_endline( Int64.to_string count); *)
+          let parser = Search.create_query_parser ~index ~default_fields:[|"heading"; "activities"; |] in
+          let docs = Search.query  ~index  ~parser ~query:"running"  ~doc_limit:10  in
           List.iter docs ~f:print_endline)
   ;;
 end

@@ -6,7 +6,7 @@ type t =
   ; heading : string
   ; activities : string
   }
-[@@deriving sexp, bin_io, compare, fields, csv]
+[@@deriving sexp, bin_io, compare, fields, csv,  yojson]
 
 let save file rows =
   let rows = List.map rows ~f:row_of_t in

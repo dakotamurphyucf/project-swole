@@ -5,6 +5,7 @@ use tantivy::query::QueryParser;
 use tantivy::schema::*;
 use tantivy::{doc, Index, ReloadPolicy};
 
+// Note we do not need schema in here because we have index,schema() at all times
 struct TantivyIndex {
     schema: Schema,
     reader: tantivy::IndexReader,

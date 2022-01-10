@@ -16,7 +16,6 @@ type movement_polymorphic =
   ]
 
 external tests_teardown : unit -> unit = "ocaml_interop_teardown"
-external twice : int -> int = "rust_twice"
 external twice_boxed_i64 : int64 -> int64 = "rust_twice_boxed_i64"
 external twice_boxed_i32 : int32 -> int32 = "rust_twice_boxed_i32"
 external twice_boxed_float : float -> float = "rust_twice_boxed_float"
@@ -48,9 +47,36 @@ external string_of_polymorphic_movement
   -> string
   = "rust_string_of_polymorphic_movement"
 
-external run_tantiviy : string -> string list = "run_tantiviy"
-
 type tantivy_index
 
-external new_tantivy_index : unit -> tantivy_index = "new_tantivy_index"
-external query_tantivy : tantivy_index -> string -> string list = "query_tantivy"
+type text_field_option =
+  | Text
+  | TextAndStored
+  | String
+
+type u64_field_option = Indexed
+type facet_field_option = Default
+
+type field =
+  | Text of text_field_option
+  | U64 of u64_field_option
+  | Facet of facet_field_option
+
+type tantivy_schema
+
+type tantivy_query_parser
+
+external new_tantivy_schema : (string * field) array -> tantivy_schema = "new_tantivy_schema"
+
+external tantivy_index : tantivy_schema -> string -> tantivy_index  = "tantivy_index"
+
+external add_docs_json : tantivy_index -> string  array -> int64  = "add_docs_json"
+
+external create_query_parser: tantivy_index -> string array -> tantivy_query_parser = "create_query_parser"
+
+
+external _query: tantivy_index -> tantivy_query_parser -> string -> int -> string list  = "query"
+
+let create_query_parser ~index ~default_fields = create_query_parser index default_fields
+let query ~index ~parser ~query ~doc_limit = _query index parser query doc_limit
+

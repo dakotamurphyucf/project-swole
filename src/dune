@@ -1,6 +1,6 @@
 (library
  (inline_tests)
  (name swole_lib)
- (libraries core bin_prot_util sexp_pretty swole_search)
+ (libraries core bin_prot_util sexp_pretty yojson  swole_search)
  (preprocess
-  (pps ppx_jane ppx_expect ppx_csv_conv)))
+  (pps ppx_jane ppx_expect ppx_csv_conv ppx_yojson_conv)))

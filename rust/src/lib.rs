@@ -6,10 +6,10 @@ use ocaml_interop::{
 
 use std::{thread, time};
 
-use ocaml_tantivy::tantiviy;
-pub mod ocaml_tantivy;
 pub mod ocaml_schema;
 pub mod ocaml_index;
+pub mod ocaml_doc;
+pub mod ocaml_query;
 
 enum Movement {
     Step { count: i32 },
@@ -28,12 +28,6 @@ ocaml_export! {
     //     let s:i64 = *num.borrow();
     //     OCaml::box_value(cr,  s * 2)
     // }
-
-    fn run_tantiviy(cr, num: OCamlRef<String>) -> OCaml<OCamlList<String>>{
-        let query: String = num.to_rust(cr);
-        let list = tantiviy(&query.as_str()).unwrap();
-        list.to_ocaml(cr)
-    }
 
     fn rust_twice_boxed_i64(cr, num: OCamlRef<OCamlInt64>) -> OCaml<OCamlInt64> {
         let num: i64 = num.to_rust(cr);
