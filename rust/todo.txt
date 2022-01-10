@@ -1,0 +1,127 @@
+tantivy api
+
+Schema:
+    docs: https://docs.rs/tantivy/latest/tantivy/schema/index.html
+    - schema builder
+        - title options
+        - text options
+        - facet options
+        - Bytes options
+        - int options
+
+
+    Index:
+        docs: https://docs.rs/tantivy/latest/tantivy/struct.Index.html
+        impl Index:
+            pub fn builder() -> IndexBuilder
+                Creates a new builder.
+
+            pub fn exists<Dir: Directory>(dir: &Dir) -> Result<bool, OpenReadError>
+                Examines the directory to see if it contains an index.
+
+                Effectively, it only checks for the presence of the meta.json file.
+
+            pub fn search_executor(&self) -> &Executor
+                Accessor to the search executor.
+
+                This pool is used by default when calling searcher.search(...) to perform search on the individual segments.
+
+                By default the executor is single thread, and simply runs in the calling thread.
+
+            pub fn set_multithread_executor(&mut self, num_threads: usize) -> Result<()>
+                Replace the default single thread search executor pool by a thread pool with a given number of threads.
+
+            pub fn set_default_multithread_executor(&mut self) -> Result<()>
+                Replace the default single thread search executor pool by a thread pool with a given number of threads.
+
+            pub fn create_in_ram(schema: Schema) -> Index
+                Creates a new index using the RamDirectory.
+
+                The index will be allocated in anonymous memory. This is useful for indexing small set of documents for instances like unit test or temporary in memory index.
+
+            pub fn create_in_dir<P: AsRef<Path>>(
+                directory_path: P,
+                schema: Schema
+            ) -> Result<Index>
+                Creates a new index in a given filepath. The index will use the MMapDirectory.
+
+                If a previous index was in this directory, then it returns an IndexAlreadyExists error.
+
+            pub fn open_or_create<Dir: Directory>(dir: Dir, schema: Schema) -> Result<Index>
+                Opens or creates a new index in the provided directory
+
+            pub fn create_from_tempdir(schema: Schema) -> Result<Index>
+                Creates a new index in a temp directory.
+
+                The index will use the MMapDirectory in a newly created directory. The temp directory will be destroyed automatically when the Index object is destroyed.
+
+                The temp directory is only used for testing the MmapDirectory. For other unit tests, prefer the RamDirectory, see: create_in_ram.
+
+            pub fn create<Dir: Directory>(
+                dir: Dir,
+                schema: Schema,
+                settings: IndexSettings
+            ) -> Result<Index>
+                Creates a new index given an implementation of the trait Directory.
+
+                If a directory previously existed, it will be erased.
+
+            pub fn tokenizers(&self) -> &TokenizerManager
+                Accessor for the tokenizer manager.
+
+            pub fn tokenizer_for_field(&self, field: Field) -> Result<TextAnalyzer>
+                Helper to access the tokenizer associated to a specific field.
+
+            pub fn reader(&self) -> Result<IndexReader>
+                Create a default IndexReader for the given index.
+
+                See Index.reader_builder().
+
+            pub fn reader_builder(&self) -> IndexReaderBuilder
+                Create a IndexReader for the given index.
+
+                Most project should create at most one reader for a given index. This method is typically called only once per Index instance, over the lifetime of most problem.
+
+            pub fn open_in_dir<P: AsRef<Path>>(directory_path: P) -> Result<Index>
+                Opens a new directory from an index path.
+
+            pub fn new_segment_meta(
+                &self,
+                segment_id: SegmentId,
+                max_doc: u32
+            ) -> SegmentMeta
+                Creates a new segment_meta (Advanced user only).
+
+                As long as the SegmentMeta lives, the files associated with the SegmentMeta are guaranteed to not be garbage collected, regardless of whether the segment is recorded as part of the index or not.
+
+            pub fn open<D: Directory>(directory: D) -> Result<Index>
+                Open the index using the provided directory
+
+            pub fn load_metas(&self) -> Result<IndexMeta>
+                Reads the index meta file from the directory.
+
+            pub fn writer_with_num_threads(
+                &self,
+                num_threads: usize,
+                overall_heap_size_in_bytes: usize
+            ) -> Result<IndexWriter>
+                Open a new index writer. Attempts to acquire a lockfile.
+
+                The lockfile should be deleted on drop, but it is possible that due to a panic or other error, a stale lockfile will be left in the index directory. If you are sure that no other IndexWriter on the system is accessing the index directory, it is safe to manually delete the lockfile.
+
+                num_threads defines the number of indexing workers that should work at the same time.
+
+                overall_heap_size_in_bytes sets the amount of memory allocated for all indexing thread. Each thread will receive a budget of overall_heap_size_in_bytes / num_threads.
+    
+
+
+Writer:
+    docs: https://docs.rs/tantivy/latest/tantivy/struct.IndexWriter.html
+
+
+Reader:
+    docs: https://docs.rs/tantivy/latest/tantivy/struct.IndexReader.html
+
+
+Searcher:
+    docs: https://docs.rs/tantivy/latest/tantivy/struct.Searcher.html

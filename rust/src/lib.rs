@@ -1,12 +1,15 @@
 use ocaml_interop::{
     ocaml_export, ocaml_unpack_polymorphic_variant, ocaml_unpack_variant, OCaml, OCamlBytes,
-    OCamlFloat, OCamlInt, OCamlInt32, OCamlInt64, OCamlList, OCamlRef, ToOCaml,
+    OCamlFloat, OCamlInt, OCamlInt32, OCamlInt64, OCamlList, OCamlRef, ToOCaml
 };
+// use std::borrow::Borrow;
 
 use std::{thread, time};
 
 use ocaml_tantivy::tantiviy;
 pub mod ocaml_tantivy;
+pub mod ocaml_schema;
+pub mod ocaml_index;
 
 enum Movement {
     Step { count: i32 },
@@ -21,10 +24,10 @@ enum PolymorphicMovement {
 }
 
 ocaml_export! {
-    fn rust_twice(cr, num: OCamlRef<OCamlInt>) -> OCaml<OCamlInt> {
-        let num: i64 = num.to_rust(cr);
-        unsafe { OCaml::of_i64_unchecked(num * 2) }
-    }
+    // fn rust_twice(cr, num:OCaml<DynBox<i64>>) -> OCaml<DynBox<i64>> {
+    //     let s:i64 = *num.borrow();
+    //     OCaml::box_value(cr,  s * 2)
+    // }
 
     fn run_tantiviy(cr, num: OCamlRef<String>) -> OCaml<OCamlList<String>>{
         let query: String = num.to_rust(cr);
